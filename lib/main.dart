@@ -1,115 +1,87 @@
+import 'package:animations/animations.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MyApp(
+    home: Placeholder(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.home});
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
+  final Widget home;
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  static const _m3DefaultSeedColor = Color(0xff6750a4);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  static final _fallbackLightScheme = ColorScheme.fromSeed(
+    seedColor: _m3DefaultSeedColor,
+    brightness: Brightness.light,
+  );
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  static final _fallbackDarkScheme = ColorScheme.fromSeed(
+    seedColor: _m3DefaultSeedColor,
+    brightness: Brightness.dark,
+  );
 
-  final String title;
+  static const _inputDecorationTheme = InputDecorationTheme(
+    filled: true,
+    border: UnderlineInputBorder(),
+  );
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  static const _snackBarTheme = SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+  );
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  static const _sharedAxisPageTransitionsBuilder =
+      SharedAxisPageTransitionsBuilder(
+    transitionType: SharedAxisTransitionType.horizontal,
+  );
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  static const _pageTransitionsTheme = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: _sharedAxisPageTransitionsBuilder,
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.linux: _sharedAxisPageTransitionsBuilder,
+      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.windows: _sharedAxisPageTransitionsBuilder,
+    },
+  );
 
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+  static _tooltipThemeData(ColorScheme scheme) => TooltipThemeData(
+        decoration: BoxDecoration(
+          color: scheme.secondaryContainer,
+          borderRadius: const BorderRadius.all(Radius.circular(20)),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        textStyle: TextStyle(
+          color: scheme.onSecondaryContainer,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return DynamicColorBuilder(builder: (lightScheme, darkScheme) {
+      return MaterialApp(
+        title: 'BLE Demo',
+        theme: ThemeData(
+          colorScheme: lightScheme ?? _fallbackLightScheme,
+          useMaterial3: true,
+          inputDecorationTheme: _inputDecorationTheme,
+          snackBarTheme: _snackBarTheme,
+          pageTransitionsTheme: _pageTransitionsTheme,
+          tooltipTheme: _tooltipThemeData(lightScheme ?? _fallbackLightScheme),
+        ),
+        darkTheme: ThemeData(
+          colorScheme: darkScheme ?? _fallbackDarkScheme,
+          useMaterial3: true,
+          inputDecorationTheme: _inputDecorationTheme,
+          snackBarTheme: _snackBarTheme,
+          pageTransitionsTheme: _pageTransitionsTheme,
+          tooltipTheme: _tooltipThemeData(darkScheme ?? _fallbackDarkScheme),
+        ),
+        home: home,
+      );
+    });
   }
 }
