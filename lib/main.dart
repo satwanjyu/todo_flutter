@@ -1,6 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'home.dart';
 
@@ -65,7 +66,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return DynamicColorBuilder(builder: (lightScheme, darkScheme) {
       return MaterialApp(
-        title: 'BLE Demo',
         theme: ThemeData(
           colorScheme: lightScheme ?? _fallbackLightScheme,
           useMaterial3: true,
@@ -83,6 +83,9 @@ class MyApp extends StatelessWidget {
           tooltipTheme: _tooltipThemeData(darkScheme ?? _fallbackDarkScheme),
         ),
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
         home: home,
       );
     });

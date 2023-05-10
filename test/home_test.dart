@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:todo_flutter/home.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
-  Future pumpHome(WidgetTester tester) =>
-      tester.pumpWidget(const MaterialApp(home: HomePage()));
+  Future pumpHome(WidgetTester tester) => tester.pumpWidget(const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: HomePage(),
+      ));
 
   Future addNewTask(WidgetTester tester, String title) async {
     // Click FAB

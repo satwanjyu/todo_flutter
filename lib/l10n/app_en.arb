@@ -1,0 +1,19 @@
+{
+  "appTitle": "Todo",
+  "tasks": "Tasks",
+  "createANewTask": "Create a new task",
+  "newTask": "New task",
+  "selected": "{count} selected",
+  "@selected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelectedTasks": "Delete selected tasks",
+  "cancel": "Cancel",
+  "save": "Save",
+  "title": "Title",
+  "titleCannotBeEmpty": "Title cannot be empty"
+}

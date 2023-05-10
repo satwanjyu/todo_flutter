@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'home_model.dart';
 
@@ -25,7 +26,7 @@ class _HomePageState extends State<HomePage> {
         slivers: [
           if (!_selectMode)
             SliverAppBar.large(
-              title: const Text('Tasks'),
+              title: Text(AppLocalizations.of(context).tasks),
             )
           else
             _EditingAppBar(
@@ -88,7 +89,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        tooltip: 'Create a new task',
+        tooltip: AppLocalizations.of(context).createANewTask,
         onPressed: () async {
           final task = await Navigator.of(context).push(_newTaskRoute);
           if (task != null) {
@@ -98,7 +99,7 @@ class _HomePageState extends State<HomePage> {
           }
         },
         icon: const Icon(Icons.add),
-        label: const Text('New task'),
+        label: Text(AppLocalizations.of(context).newTask),
       ),
     );
   }
@@ -118,16 +119,16 @@ class _EditingAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar.large(
-      title: Text('$selectedTaskCount selected'),
+      title: Text(AppLocalizations.of(context).selected(selectedTaskCount)),
       actions: [
         IconButton(
-          tooltip: 'Delete selected tasks',
+          tooltip: AppLocalizations.of(context).deleteSelectedTasks,
           icon: const Icon(Icons.delete),
           onPressed: onDeletePressed,
         ),
       ],
       leading: IconButton(
-        tooltip: 'Cancel',
+        tooltip: AppLocalizations.of(context).cancel,
         icon: const Icon(Icons.close),
         onPressed: onCancelPressed,
       ),
@@ -212,10 +213,10 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            title: const Text('New task'),
+            title: Text(AppLocalizations.of(context).newTask),
             actions: [
               IconButton(
-                tooltip: 'Save',
+                tooltip: AppLocalizations.of(context).save,
                 icon: const Icon(Icons.check),
                 onPressed: () {
                   final validated = _formKey.currentState?.validate();
@@ -238,12 +239,12 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
                   child: TextFormField(
                     autofocus: true,
                     controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context).title,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Title cannot be empty';
+                        return AppLocalizations.of(context).titleCannotBeEmpty;
                       }
                       return null;
                     },
