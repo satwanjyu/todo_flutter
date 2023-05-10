@@ -2,9 +2,11 @@ import 'package:animations/animations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 
+import 'home.dart';
+
 void main() {
   runApp(const MyApp(
-    home: Placeholder(),
+    home: HomePage(),
   ));
 }
 
@@ -80,6 +82,7 @@ class MyApp extends StatelessWidget {
           pageTransitionsTheme: _pageTransitionsTheme,
           tooltipTheme: _tooltipThemeData(darkScheme ?? _fallbackDarkScheme),
         ),
+        debugShowCheckedModeBanner: false,
         home: home,
       );
     });
