@@ -32,7 +32,9 @@ class _HomePageState extends State<HomePage> {
               selectedTaskCount: _selectedTasks.length,
               onDeletePressed: () {
                 setState(() {
-                  _tasks.removeWhere((task) => _selectedTasks.contains(task));
+                  for (final task in _selectedTasks) {
+                    _tasks.remove(task);
+                  }
                   _selectedTasks.clear();
                 });
               },
