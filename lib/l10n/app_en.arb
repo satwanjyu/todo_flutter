@@ -15,5 +15,6 @@
   "cancel": "Cancel",
   "save": "Save",
   "title": "Title",
-  "titleCannotBeEmpty": "Title cannot be empty"
+  "titleCannotBeEmpty": "Title cannot be empty",
+  "done": "Done"
 }
