@@ -10,7 +10,7 @@ void main() {
       ));
 
   Future addNewTask(WidgetTester tester, String title) async {
-    // Click FAB
+    // Tap FAB
     await tester.tap(find.byTooltip('Create a new task'));
     await tester.pumpAndSettle();
 
@@ -21,7 +21,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Click Save
+    // Tap Save
     await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
   }
@@ -35,6 +35,34 @@ void main() {
 
     // Verify new task in task list
     expect(find.widgetWithText(ListTile, title), findsOneWidget);
+  });
+
+  testWidgets('Edit task', (tester) async {
+    await pumpHome(tester);
+
+    const title = 'Lorem';
+
+    await addNewTask(tester, title);
+
+    const newTitle = 'ipsum';
+
+    // Tap task
+    await tester.tap(find.widgetWithText(ListTile, title));
+    await tester.pumpAndSettle();
+
+    // Edit title
+    final textField = find.widgetWithText(TextFormField, title);
+    await tester.tap(textField);
+    await tester.enterText(textField, newTitle);
+    await tester.pumpAndSettle();
+
+    // Tap save
+    await tester.tap(find.byTooltip('Save'));
+    await tester.pumpAndSettle();
+
+    // Verify task name changed
+    expect(find.widgetWithText(ListTile, title), findsNothing);
+    expect(find.widgetWithText(ListTile, newTitle), findsOneWidget);
   });
 
   testWidgets('Select task', (tester) async {

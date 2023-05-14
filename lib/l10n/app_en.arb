@@ -3,6 +3,7 @@
   "tasks": "Tasks",
   "createANewTask": "Create a new task",
   "newTask": "New task",
+  "editTask": "Edit task",
   "selected": "{count} selected",
   "@selected": {
     "placeholders": {

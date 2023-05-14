@@ -17,8 +17,6 @@ class _HomePageState extends State<HomePage> {
   final _selectedTasks = <Task>{};
   bool get _selectMode => _selectedTasks.isNotEmpty;
 
-  void _exitSelectMode() => _selectedTasks.clear();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +39,7 @@ class _HomePageState extends State<HomePage> {
               },
               onCancelPressed: () {
                 setState(() {
-                  _exitSelectMode();
+                  _selectedTasks.clear();
                 });
               },
             ),
@@ -52,6 +50,7 @@ class _HomePageState extends State<HomePage> {
                 final selected = _selectedTasks.contains(_tasks[index]);
 
                 void flipSelected() {
+                  // Flip selected
                   if (!selected) {
                     _selectedTasks.add(task);
                   } else {
@@ -62,23 +61,32 @@ class _HomePageState extends State<HomePage> {
                 return _TaskItem(
                   task: task,
                   selected: selected,
-                  onTap: () {
-                    if (!_selectMode) {
-                      setState(() {
-                        // Flip completed
-                        _tasks[index] = task.copyWith(
-                          completed: !task.completed,
-                        );
-                      });
-                    } else {
+                  onTap: () async {
+                    if (_selectMode) {
                       setState(() {
                         flipSelected();
                       });
+                    } else {
+                      // Push edit dialog
+                      final result = await Navigator.of(context)
+                          .push(_taskRoute(_tasks[index]));
+                      if (result != null && result != _tasks[index]) {
+                        setState(() {
+                          _tasks[index] = result;
+                        });
+                      }
                     }
                   },
                   onLongPress: () {
                     setState(() {
                       flipSelected();
+                    });
+                  },
+                  onCheckboxChanged: (value) {
+                    setState(() {
+                      _tasks[index] = _tasks[index].copyWith(
+                        completed: value,
+                      );
                     });
                   },
                 );
@@ -91,7 +99,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton.extended(
         tooltip: AppLocalizations.of(context).createANewTask,
         onPressed: () async {
-          final task = await Navigator.of(context).push(_newTaskRoute);
+          final task = await Navigator.of(context).push(_taskRoute());
           if (task != null) {
             setState(() {
               _tasks.add(task);
@@ -142,12 +150,14 @@ class _TaskItem extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.onLongPress,
+    required this.onCheckboxChanged,
   });
 
   final Task task;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final ValueChanged<bool> onCheckboxChanged;
 
   TextStyle _completedTitleTextStyle(BuildContext context) => TextStyle(
         color: Theme.of(context).disabledColor,
@@ -173,17 +183,11 @@ class _TaskItem extends StatelessWidget {
             ? null
             : Checkbox(
                 value: task.completed,
-                onChanged: (_) {
-                  onTap();
-                },
+                onChanged: (value) => onCheckboxChanged(value!),
               ),
-        onTap: () {
-          onTap();
-        },
+        onTap: onTap,
         selected: selected,
-        onLongPress: () {
-          onLongPress();
-        },
+        onLongPress: onLongPress,
         title: Text(
           task.title,
           style: task.completed ? _completedTitleTextStyle(context) : null,
@@ -193,19 +197,29 @@ class _TaskItem extends StatelessWidget {
   }
 }
 
-MaterialPageRoute<Task> get _newTaskRoute => MaterialPageRoute<Task>(
-    builder: (context) => const _NewTaskDialog(), fullscreenDialog: true);
+MaterialPageRoute<Task> _taskRoute([Task? task]) => MaterialPageRoute<Task>(
+    builder: (context) => _TaskDialog(task: task), fullscreenDialog: true);
 
-class _NewTaskDialog extends StatefulWidget {
-  const _NewTaskDialog();
+/// Create/Edit task
+class _TaskDialog extends StatefulWidget {
+  const _TaskDialog({required this.task});
+
+  final Task? task;
 
   @override
-  State<_NewTaskDialog> createState() => _NewTaskDialogState();
+  State<_TaskDialog> createState() => _TaskDialogState();
 }
 
-class _NewTaskDialogState extends State<_NewTaskDialog> {
+class _TaskDialogState extends State<_TaskDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
+
+  late final _titleController = TextEditingController(text: widget.task?.title);
+
+  late final _createTask = widget.task == null;
+
+  String _title(BuildContext context) => _createTask
+      ? AppLocalizations.of(context).newTask
+      : AppLocalizations.of(context).editTask;
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +227,7 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            title: Text(AppLocalizations.of(context).newTask),
+            title: Text(_title(context)),
             actions: [
               IconButton(
                 tooltip: AppLocalizations.of(context).save,
