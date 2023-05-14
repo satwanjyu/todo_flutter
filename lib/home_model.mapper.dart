@@ -5,69 +5,88 @@
 
 part of 'home_model.dart';
 
-class TaskMapper extends MapperBase<Task> {
-  static MapperContainer container = MapperContainer(
-    mappers: {TaskMapper()},
-  );
+class TaskMapper extends ClassMapperBase<Task> {
+  TaskMapper._();
 
-  @override
-  TaskMapperElement createElement(MapperContainer container) {
-    return TaskMapperElement._(this, container);
+  static TaskMapper? _instance;
+  static TaskMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = TaskMapper._());
+    }
+    return _instance!;
+  }
+
+  static T _guard<T>(T Function(MapperContainer) fn) {
+    ensureInitialized();
+    return fn(MapperContainer.globals);
   }
 
   @override
-  String get id => 'Task';
-}
+  final String id = 'Task';
 
-class TaskMapperElement extends MapperElementBase<Task> {
-  TaskMapperElement._(super.mapper, super.container);
+  static bool _$completed(Task v) => v.completed;
+  static const Field<Task, bool> _f$completed = Field('completed', _$completed);
+  static String _$title(Task v) => v.title;
+  static const Field<Task, String> _f$title = Field('title', _$title);
 
   @override
-  int hash(Task self) =>
-      container.hash(self.completed) ^ container.hash(self.title);
+  final Map<Symbol, Field<Task, dynamic>> fields = const {
+    #completed: _f$completed,
+    #title: _f$title,
+  };
+
+  static Task _instantiate(DecodingData data) {
+    return Task(completed: data.dec(_f$completed), title: data.dec(_f$title));
+  }
+
   @override
-  bool equals(Task self, Task other) =>
-      container.isEqual(self.completed, other.completed) &&
-      container.isEqual(self.title, other.title);
+  final Function instantiate = _instantiate;
 }
 
 mixin TaskMappable {
   TaskCopyWith<Task, Task, Task> get copyWith =>
       _TaskCopyWithImpl(this as Task, $identity, $identity);
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (runtimeType == other.runtimeType &&
-          TaskMapper.container.isEqual(this, other));
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (runtimeType == other.runtimeType &&
+            TaskMapper._guard((c) => c.isEqual(this, other)));
+  }
+
   @override
-  int get hashCode => TaskMapper.container.hash(this);
+  int get hashCode {
+    return TaskMapper._guard((c) => c.hash(this));
+  }
 }
 
-extension TaskValueCopy<$R, $Out extends Task>
-    on ObjectCopyWith<$R, Task, $Out> {
-  TaskCopyWith<$R, Task, $Out> get asTask =>
-      base.as((v, t, t2) => _TaskCopyWithImpl(v, t, t2));
+extension TaskValueCopy<$R, $Out> on ObjectCopyWith<$R, Task, $Out> {
+  TaskCopyWith<$R, Task, $Out> get $asTask =>
+      $base.as((v, t, t2) => _TaskCopyWithImpl(v, t, t2));
 }
 
-typedef TaskCopyWithBound = Task;
-
-abstract class TaskCopyWith<$R, $In extends Task, $Out extends Task>
-    implements ObjectCopyWith<$R, $In, $Out> {
-  TaskCopyWith<$R2, $In, $Out2> chain<$R2, $Out2 extends Task>(
-      Then<Task, $Out2> t, Then<$Out2, $R2> t2);
+abstract class TaskCopyWith<$R, $In extends Task, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
   $R call({bool? completed, String? title});
+  TaskCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
-class _TaskCopyWithImpl<$R, $Out extends Task>
-    extends CopyWithBase<$R, Task, $Out>
+class _TaskCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Task, $Out>
     implements TaskCopyWith<$R, Task, $Out> {
   _TaskCopyWithImpl(super.value, super.then, super.then2);
-  @override
-  TaskCopyWith<$R2, Task, $Out2> chain<$R2, $Out2 extends Task>(
-          Then<Task, $Out2> t, Then<$Out2, $R2> t2) =>
-      _TaskCopyWithImpl($value, t, t2);
 
   @override
-  $R call({bool? completed, String? title}) => $then(Task(
-      completed: completed ?? $value.completed, title: title ?? $value.title));
+  late final ClassMapperBase<Task> $mapper = TaskMapper.ensureInitialized();
+  @override
+  $R call({bool? completed, String? title}) => $apply(FieldCopyWithData({
+        if (completed != null) #completed: completed,
+        if (title != null) #title: title
+      }));
+  @override
+  Task $make(CopyWithData data) => Task(
+      completed: data.get(#completed, or: $value.completed),
+      title: data.get(#title, or: $value.title));
+
+  @override
+  TaskCopyWith<$R2, Task, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+      _TaskCopyWithImpl($value, $cast, t);
 }
