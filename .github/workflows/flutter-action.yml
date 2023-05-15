@@ -27,7 +27,7 @@ jobs:
           jq -e 'length == 0' /tmp/untranslated-messages.json >/dev/null
 
       - name: Run build_runner
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
