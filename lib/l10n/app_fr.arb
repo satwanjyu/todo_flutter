@@ -1,0 +1,20 @@
+{
+  "appTitle": "Todo",
+  "tasks": "Tâches",
+  "createANewTask": "Créer une nouvelle tâche",
+  "newTask": "Nouvelle tâche",
+  "editTask": "Modifier la tâche",
+  "selected": "{count} sélectionnées",
+  "@selected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelectedTasks": "Supprimer les tâches sélectionnées",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "title": "Titre",
+  "titleCannotBeEmpty": "Le titre ne peut pas être vide"
+}
