@@ -35,6 +35,11 @@ jobs:
       - name: Analyze project source
         run: flutter analyze
 
+      - name: Run DCM analysis
+        uses: dart-code-checker/dart-code-metrics-action@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run tests
         run: flutter test --coverage
 
