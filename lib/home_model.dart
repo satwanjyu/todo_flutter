@@ -2,7 +2,11 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 part 'home_model.mapper.dart';
 
-@MappableClass(generateMethods: GenerateMethods.equals | GenerateMethods.copy)
+@MappableClass(
+    generateMethods: GenerateMethods.equals |
+        GenerateMethods.copy |
+        GenerateMethods.encode |
+        GenerateMethods.decode)
 class Task with TaskMappable {
   const Task({
     required this.completed,

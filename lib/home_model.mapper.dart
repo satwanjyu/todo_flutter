@@ -41,9 +41,25 @@ class TaskMapper extends ClassMapperBase<Task> {
 
   @override
   final Function instantiate = _instantiate;
+
+  static Task fromMap(Map<String, dynamic> map) {
+    return _guard((c) => c.fromMap<Task>(map));
+  }
+
+  static Task fromJson(String json) {
+    return _guard((c) => c.fromJson<Task>(json));
+  }
 }
 
 mixin TaskMappable {
+  String toJson() {
+    return TaskMapper._guard((c) => c.toJson(this as Task));
+  }
+
+  Map<String, dynamic> toMap() {
+    return TaskMapper._guard((c) => c.toMap(this as Task));
+  }
+
   TaskCopyWith<Task, Task, Task> get copyWith =>
       _TaskCopyWithImpl(this as Task, $identity, $identity);
   @override

@@ -10,12 +10,50 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _RestorableTask extends RestorableValue<Task> {
+  @override
+  Task createDefaultValue() => const Task(completed: false, title: '');
+
+  @override
+  void didUpdateValue(Task? oldValue) {
+    if (oldValue != value) notifyListeners();
+  }
+
+  @override
+  Task fromPrimitives(Object? data) =>
+      TaskMapper.fromMap(data as Map<String, dynamic>);
+
+  @override
+  Object? toPrimitives() => value.toMap();
+}
+
+class _HomePageState extends State<HomePage> with RestorationMixin {
   // TODO(satwanjyu): Use a proper repository
   final _tasks = <Task>[];
 
   final _selectedTasks = <Task>{};
   bool get _selectMode => _selectedTasks.isNotEmpty;
+
+  late RestorableRouteFuture<Task> _taskRouteFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _taskRouteFuture = RestorableRouteFuture<Task>(
+      onPresent: (navigator, arguments) => Navigator.of(context)
+          .restorablePush(_taskRouteBuilder, arguments: arguments),
+      onComplete: (task) {
+        // TODO
+        throw UnimplementedError();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _taskRouteFuture.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +149,14 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  @override
+  String? get restorationId => 'home-page';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_taskRouteFuture, 'task-route-future');
+  }
 }
 
 class _EditingAppBar extends StatelessWidget {
@@ -200,6 +246,12 @@ class _TaskItem extends StatelessWidget {
 MaterialPageRoute<Task> _taskRoute([Task? task]) => MaterialPageRoute<Task>(
     builder: (context) => _TaskDialog(task: task), fullscreenDialog: true);
 
+MaterialPageRoute<Task> _taskRouteBuilder(
+        BuildContext context, Object? arguments) =>
+    MaterialPageRoute<Task>(
+        builder: (context) => const _TaskDialog(task: null),
+        fullscreenDialog: true);
+
 /// Create/Edit task
 class _TaskDialog extends StatefulWidget {
   const _TaskDialog({required this.task});
@@ -210,10 +262,11 @@ class _TaskDialog extends StatefulWidget {
   State<_TaskDialog> createState() => _TaskDialogState();
 }
 
-class _TaskDialogState extends State<_TaskDialog> {
+class _TaskDialogState extends State<_TaskDialog> with RestorationMixin {
   final _formKey = GlobalKey<FormState>();
 
-  late final _titleController = TextEditingController(text: widget.task?.title);
+  late final _titleController =
+      RestorableTextEditingController(text: widget.task?.title);
 
   late final _createTask = widget.task == null;
 
@@ -235,8 +288,8 @@ class _TaskDialogState extends State<_TaskDialog> {
                 onPressed: () {
                   final validated = _formKey.currentState?.validate();
                   if (validated == true) {
-                    final result =
-                        Task(title: _titleController.text, completed: false);
+                    final result = Task(
+                        title: _titleController.value.text, completed: false);
                     Navigator.of(context).pop(result);
                   }
                 },
@@ -252,7 +305,7 @@ class _TaskDialogState extends State<_TaskDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: TextFormField(
                     autofocus: true,
-                    controller: _titleController,
+                    controller: _titleController.value,
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context).title,
                     ),
@@ -270,5 +323,13 @@ class _TaskDialogState extends State<_TaskDialog> {
         ],
       ),
     );
+  }
+
+  @override
+  String? get restorationId => 'task-dialog';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
+    registerForRestoration(_titleController, 'title-controller');
   }
 }
