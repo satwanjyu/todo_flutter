@@ -1,114 +1,138 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import 'home_model.dart';
+import 'package:todo_flutter/model/task.dart';
+import 'package:todo_flutter/pages/home/home_api.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({
+    super.key,
+    required this.api,
+  });
+
+  final HomeApi api;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  // TODO(satwanjyu): Use a proper repository
-  final _tasks = <Task>[];
-
   final _selectedTasks = <Task>{};
   bool get _selectMode => _selectedTasks.isNotEmpty;
 
+  late Future<List<Task>> _tasksFuture;
+
+  void _refreshTasks() => _tasksFuture = widget.api.getTasks();
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshTasks();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          if (!_selectMode)
-            SliverAppBar.large(
-              title: Text(AppLocalizations.of(context).tasks),
-            )
-          else
-            _EditingAppBar(
-              selectedTaskCount: _selectedTasks.length,
-              onDeletePressed: () {
-                setState(() {
-                  for (final task in _selectedTasks) {
-                    _tasks.remove(task);
-                  }
-                  _selectedTasks.clear();
-                });
-              },
-              onCancelPressed: () {
-                setState(() {
-                  _selectedTasks.clear();
-                });
-              },
-            ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final task = _tasks[index];
-                final selected = _selectedTasks.contains(_tasks[index]);
+    return FutureBuilder(
+      future: _tasksFuture,
+      initialData: const <Task>[],
+      builder: (context, snapshot) {
+        // TODO(satwanjyu): DB/network action indicator (non-intrusive progress indicator)
+        // TODO(satwanjyu): Error handling
+        final tasks = snapshot.data!;
+        return Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              if (!_selectMode)
+                SliverAppBar.large(
+                  title: Text(AppLocalizations.of(context).tasks),
+                )
+              else
+                _EditingAppBar(
+                  selectedTaskCount: _selectedTasks.length,
+                  onDeletePressed: () {
+                    setState(() {
+                      for (final task in _selectedTasks) {
+                        widget.api.deleteTask(task);
+                      }
+                      _selectedTasks.clear();
+                      _refreshTasks();
+                    });
+                  },
+                  onCancelPressed: () {
+                    setState(() {
+                      _selectedTasks.clear();
+                    });
+                  },
+                ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final task = tasks[index];
+                    final selected = _selectedTasks.contains(tasks[index]);
 
-                void flipSelected() {
-                  // Flip selected
-                  if (!selected) {
-                    _selectedTasks.add(task);
-                  } else {
-                    _selectedTasks.remove(task);
-                  }
-                }
-
-                return _TaskItem(
-                  task: task,
-                  selected: selected,
-                  onTap: () async {
-                    if (_selectMode) {
-                      setState(() {
-                        flipSelected();
-                      });
-                    } else {
-                      // Push edit dialog
-                      final result = await Navigator.of(context)
-                          .push(_taskRoute(_tasks[index]));
-                      if (result != null && result != _tasks[index]) {
-                        setState(() {
-                          _tasks[index] = result;
-                        });
+                    void flipSelected() {
+                      // Flip selected
+                      if (!selected) {
+                        _selectedTasks.add(task);
+                      } else {
+                        _selectedTasks.remove(task);
                       }
                     }
+
+                    return _TaskItem(
+                      task: task,
+                      selected: selected,
+                      onTap: () async {
+                        if (_selectMode) {
+                          setState(() {
+                            flipSelected();
+                          });
+                        } else {
+                          // Push edit dialog
+                          final result = await Navigator.of(context)
+                              .push(_taskRoute(task));
+                          if (result != null && result != task) {
+                            await widget.api.updateTask(result);
+                            setState(() {
+                              _refreshTasks();
+                            });
+                          }
+                        }
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          flipSelected();
+                        });
+                      },
+                      onCheckboxChanged: (value) {
+                        setState(() {
+                          widget.api.updateTask(
+                              tasks[index].copyWith(completed: value));
+                          _refreshTasks();
+                        });
+                      },
+                    );
                   },
-                  onLongPress: () {
-                    setState(() {
-                      flipSelected();
-                    });
-                  },
-                  onCheckboxChanged: (value) {
-                    setState(() {
-                      _tasks[index] = _tasks[index].copyWith(
-                        completed: value,
-                      );
-                    });
-                  },
-                );
-              },
-              childCount: _tasks.length,
-            ),
+                  childCount: tasks.length,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        tooltip: AppLocalizations.of(context).createANewTask,
-        onPressed: () async {
-          final task = await Navigator.of(context).push(_taskRoute());
-          if (task != null) {
-            setState(() {
-              _tasks.add(task);
-            });
-          }
-        },
-        icon: const Icon(Icons.add),
-        label: Text(AppLocalizations.of(context).newTask),
-      ),
+          floatingActionButton: FloatingActionButton.extended(
+            tooltip: AppLocalizations.of(context).createANewTask,
+            onPressed: () async {
+              final task = await Navigator.of(context).push(_taskRoute());
+              if (task != null) {
+                widget.api.addTask(task);
+              }
+              setState(() {
+                _refreshTasks();
+              });
+            },
+            icon: const Icon(Icons.add),
+            label: Text(AppLocalizations.of(context).newTask),
+          ),
+        );
+      },
     );
   }
 }
@@ -235,9 +259,17 @@ class _TaskDialogState extends State<_TaskDialog> {
                 onPressed: () {
                   final validated = _formKey.currentState?.validate();
                   if (validated == true) {
-                    final result =
-                        Task(title: _titleController.text, completed: false);
-                    Navigator.of(context).pop(result);
+                    final task = widget.task;
+                    if (task == null) {
+                      // New task
+                      final result = Task(title: _titleController.text);
+                      Navigator.of(context).pop(result);
+                    } else {
+                      // Edit task
+                      final result =
+                          task.copyWith(title: _titleController.text);
+                      Navigator.of(context).pop(result);
+                    }
                   }
                 },
               ),

@@ -2,13 +2,24 @@ import 'package:animations/animations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:todo_flutter/pages/home/home_api.dart';
+import 'package:todo_flutter/repository/task_repository.dart';
 
-import 'home.dart';
+import 'db.dart';
+import 'pages/home/home.dart';
 
 void main() {
-  runApp(const MyApp(
-    home: HomePage(),
-  ));
+  runApp(
+    MyApp(
+      home: HomePage(
+        api: HomeApi(
+          taskRepository: TaskRepository(
+            localDB: LocalDB.getInstance(),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
